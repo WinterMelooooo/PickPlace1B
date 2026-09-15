@@ -1,0 +1,395 @@
+<title>PickPlace1B</title>
+<meta name="description" content="A simulated tabletop pick-and-place dataset rendered toward one billion RGB frames: live totals, render speed, and measured domain randomization.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f3f5f1; --surface:#ffffff; --ink:#17201c; --muted:#56645e; --faint:#8a9690; --rule:#d7ddd5;
+  --accent:#0f7a62; --accent-soft:#d5ece4; --amber:#b06d12; --amber-soft:#f3e3c8; --plum:#6d4b93; --warn:#a4481c;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-head:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1312; --surface:#151c1a; --ink:#e3eae6; --muted:#9aa9a2; --faint:#6f7d77; --rule:#27312e;
+    --accent:#45c2a0; --accent-soft:#163a31; --amber:#e3a650; --amber-soft:#3a2c17; --plum:#b28ddb; --warn:#e58a5c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1312; --surface:#151c1a; --ink:#e3eae6; --muted:#9aa9a2; --faint:#6f7d77; --rule:#27312e;
+  --accent:#45c2a0; --accent-soft:#163a31; --amber:#e3a650; --amber-soft:#3a2c17; --plum:#b28ddb; --warn:#e58a5c;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55;margin:0;padding-inline:clamp(16px,4vw,40px)}
+.wrap{max-width:1120px;margin:0 auto;padding-block:36px 64px}
+h1,h2,h3{font-family:var(--font-head);text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,5vw,52px);font-weight:600;letter-spacing:-.01em}
+h2{font-size:26px;font-weight:600;margin-bottom:6px}
+h3{font-size:16px;font-weight:600}
+p{margin:0;max-width:68ch}
+.muted{color:var(--muted)}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.label{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+header{display:grid;gap:14px;padding-bottom:26px;border-bottom:1px solid var(--rule)}
+.tagline{font-size:18px;color:var(--muted);max-width:60ch}
+.status{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.pill{font-family:var(--font-mono);font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--muted)}
+.pill.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,var(--rule))}
+section{padding-block:34px;border-bottom:1px solid var(--rule);display:grid;gap:18px}
+section:last-of-type{border-bottom:none}
+.lede{color:var(--muted);max-width:72ch}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.kpi{background:var(--surface);padding:14px 16px;display:grid;gap:2px}
+.kpi .v{font-family:var(--font-mono);font-size:26px;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi .s{font-size:12.5px;color:var(--muted)}
+.progress{display:grid;gap:8px}
+.bar{height:14px;background:var(--surface);border:1px solid var(--rule);position:relative;overflow:hidden}
+.bar>i{position:absolute;inset:0 auto 0 0;background:var(--accent)}
+.bar-legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:22px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px}
+.card{background:var(--surface);border:1px solid var(--rule);padding:16px;display:grid;gap:10px;align-content:start}
+.card p{font-size:13.5px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--muted);font-family:var(--font-mono);font-size:10.5px}
+svg .axis{stroke:var(--rule)}
+svg .grid{stroke:var(--rule);stroke-dasharray:2 3}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--font-mono);font-weight:500;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tscroll{overflow-x:auto}
+video{width:100%;max-width:100%;display:block;background:#000;border:1px solid var(--rule)}
+.cap{font-size:13px;color:var(--muted)}
+.lights{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.lights figure{margin:0;display:grid;gap:4px}
+.lights img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--rule)}
+.lights figcaption{font-family:var(--font-mono);font-size:11.5px;color:var(--muted)}
+code,.path{font-family:var(--font-mono);font-size:13px;background:var(--accent-soft);color:var(--ink);padding:1px 6px;border-radius:3px;word-break:break-all}
+pre{font-family:var(--font-mono);font-size:12.5px;background:var(--surface);border:1px solid var(--rule);padding:14px;overflow-x:auto;margin:0;line-height:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:var(--c)}
+canvas{width:100%;max-width:100%;display:block;touch-action:none;cursor:grab;background:var(--surface);border:1px solid var(--rule)}
+footer{padding-top:26px;font-size:12.5px;color:var(--muted);display:grid;gap:6px}
+a{color:var(--accent)}
+button:focus-visible,a:focus-visible,video:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="label">Simulated tabletop pick-and-place</div>
+  <h1>PickPlace1B</h1>
+  <p class="tagline">A Franka pick-and-place dataset rendered in Isaac Sim, heading for one billion RGB frames. Every number on this page is counted from the saved episodes.</p>
+  <div class="status" id="status"></div>
+</header>
+
+<section id="progress">
+  <div>
+    <h2>Progress</h2>
+    <p class="lede">Saved successful episodes only. An episode is one pick followed by one place, recorded by five RGB + depth cameras.</p>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="progress">
+    <div class="bar" role="img" id="bar1b"><i></i></div>
+    <div class="bar-legend mono"><span id="bar-left"></span><span id="bar-right">target 1,000,000,000 RGB frames</span></div>
+  </div>
+</section>
+
+<section id="speed">
+  <div>
+    <h2>Render speed</h2>
+    <p class="lede">Episodes saved per clock hour since the dataset began. One worker is one GPU running eight parallel slots per round.</p>
+  </div>
+  <div class="card"><svg id="hourly" viewBox="0 0 1000 230" role="img" aria-label="Episodes saved per hour"></svg></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Measured rate per worker</h3>
+      <div class="tscroll"><table id="rates"></table></div>
+      <p class="muted">Worker-hours are the summed wall time of all production rounds, including rounds that saved nothing (no successful first pass, or no feasible table). Frames per episode is the verified mean.</p>
+    </div>
+    <div class="card">
+      <h3>Storage</h3>
+      <svg id="storage" viewBox="0 0 460 84" role="img" aria-label="Dataset and volume usage"></svg>
+      <div class="tscroll"><table id="storage-table"></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="latest">
+  <div>
+    <h2>Latest 36 scenes</h2>
+    <p class="lede">The most recent 36 distinct scenes, one saved episode each, front camera, grasp then place. The recording is 20 fps, one frame per control step; this grid shows every second frame.</p>
+  </div>
+  <video src="media/latest36.mp4" controls muted loop playsinline preload="metadata" id="v-latest"></video>
+</section>
+
+<section id="dr">
+  <div>
+    <h2>Domain randomization</h2>
+    <p class="lede">Ranges measured from the saved data, not copied from configuration. Episode-level values come from a random sample of saved episodes; table and scene values from every production round.</p>
+  </div>
+  <div class="tscroll"><table id="drtable"></table></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Top view of the workspace</h3>
+      <svg id="topview" viewBox="0 0 460 460" role="img" aria-label="Object start and place target positions with table footprints"></svg>
+      <div class="legend"><span style="--c:var(--accent)">object start</span><span style="--c:var(--amber)">place target</span><span style="--c:var(--faint)">table outlines (300 sampled)</span></div>
+      <p class="muted">Robot base frame, metres; the robot base sits at the origin facing +x.</p>
+    </div>
+    <div class="card">
+      <h3>Camera positions</h3>
+      <canvas id="cams" width="920" height="920" tabindex="0" aria-label="Camera positions, drag to rotate"></canvas>
+      <div class="legend" id="cam-legend"></div>
+      <p class="muted">Drag to rotate. Each dot is one sampled episode's camera position; the grey rectangle is a 0.8 × 1.6 m table at x = 0.5 m, the black mark the robot base.</p>
+    </div>
+  </div>
+  <div class="grid3" id="hists"></div>
+</section>
+
+<section id="scenes">
+  <div>
+    <h2>Per-slot backgrounds and table textures</h2>
+    <p class="lede">A round renders eight slots in parallel. Since 14 September each slot gets its own floor and walls, and since 15 September its own table texture; earlier episodes share one background and texture per round.</p>
+  </div>
+  <div class="grid2">
+    <figure class="card" style="margin:0">
+      <video src="media/per_slot_backgrounds.mp4" controls muted loop playsinline preload="metadata"></video>
+      <figcaption class="cap">One round, eight slots: different floor and walls per slot.</figcaption>
+    </figure>
+    <figure class="card" style="margin:0">
+      <video src="media/per_slot_table_textures.mp4" controls muted loop playsinline preload="metadata"></video>
+      <figcaption class="cap">One round, four slots that passed the first pass: different table texture, floor and walls per slot.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="lighting">
+  <div>
+    <h2>Dome light intensity</h2>
+    <p class="lede">The same scene rendered at eight intensities across the production range 0 to 8000 (quality rendering mode, fixed yaw, no HDRI).</p>
+  </div>
+  <div class="lights" id="lights"></div>
+</section>
+
+<section id="access">
+  <div>
+    <h2>Data layout</h2>
+    <p class="lede">The dataset lives on the group NFS volume and is readable from compute nodes.</p>
+  </div>
+  <div class="tscroll"><table id="paths"></table></div>
+<pre>&lt;gen&gt;/&lt;round&gt;/&lt;episode tag&gt;/&lt;timestamp&gt;/&lt;task&gt;/exp_0/
+  traj/*.npz               states, actions, object poses, RGB + depth for front, front_1, front_2, front_3, wrist (640 × 368)
+  *.json                   task, camera intrinsics/extrinsics, reset parameters (lighting, cameras, table, floor, walls, objects)
+  front_videos/  front_1_videos/  front_2_videos/  front_3_videos/  wrist_videos/
+                           grasp segment (video_1) and place segment (video_2) per camera</pre>
+</section>
+
+<footer id="footer"></footer>
+</div>
+
+<script src="data.js"></script>
+<script src="light.js"></script>
+<script>
+(function(){
+const P = window.PP, L = window.PP_LIGHT || [];
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString("en-US");
+const M = n => n >= 1e9 ? (n/1e9).toFixed(2)+" B" : n >= 1e6 ? (n/1e6).toFixed(1)+" M" : n >= 1e3 ? (n/1e3).toFixed(1)+" k" : String(n);
+const GB = b => b >= 1e12 ? (b/1e12).toFixed(2)+" TB" : (b/1e9).toFixed(0)+" GB";
+const svgNS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, parent, text) => { const e = document.createElementNS(svgNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const T = P.totals, S = P.speed;
+
+// ---------- status + KPIs ----------
+const lastEp = new Date(T.last), snap = new Date(T.snapshot);
+const idleH = (snap - lastEp) / 36e5;
+$("#status").innerHTML =
+  `<span class="pill">snapshot ${T.snapshot.replace("T"," ")}</span>` +
+  `<span class="pill">first episode ${T.first.slice(0,10)}</span>` +
+  (idleH > 2 ? `<span class="pill warn">no new episodes since ${T.last.replace("T"," ").slice(0,16)}</span>` : `<span class="pill">last episode ${T.last.replace("T"," ").slice(0,16)}</span>`);
+const k = [
+  ["Episodes", fmt(T.episodes), "saved, successful"],
+  ["RGB frames", M(T.rgb_frames), (100*T.rgb_frames/1e9).toFixed(2)+"% of 1 B"],
+  ["Control steps", M(T.steps), fmt(Math.round(S.rgb_frames_per_episode))+" RGB frames / episode"],
+  ["Stored", GB(T.bytes), GB(T.npz_bytes)+" in NPZ"],
+  ["Objects", fmt(T.objects), T.categories+" categories"],
+  ["Rounds", fmt(T.rounds), "8 parallel slots each"],
+];
+$("#kpis").innerHTML = k.map(([a,b,c]) => `<div class="kpi"><span class="label">${a}</span><span class="v">${b}</span><span class="s">${c}</span></div>`).join("");
+$("#bar1b i").style.width = Math.max(0.4, 100*T.rgb_frames/1e9)+"%";
+$("#bar1b").setAttribute("aria-label", `${(100*T.rgb_frames/1e9).toFixed(2)} percent of one billion RGB frames`);
+$("#bar-left").textContent = `${fmt(T.rgb_frames)} RGB frames`;
+
+// ---------- hourly production ----------
+(function(){
+  const svg = $("#hourly"), H = P.hourly, W = 1000, h = 230, l = 44, r = 10, t = 12, b = 34;
+  const max = Math.max(...H.map(x => x[1])), top = Math.ceil(max/50)*50 || 50;
+  const bw = (W-l-r)/H.length, y = v => t + (h-t-b)*(1 - v/top);
+  for (let g = 0; g <= 4; g++){ const v = top*g/4; el("line",{x1:l,x2:W-r,y1:y(v),y2:y(v),class:g?"grid":"axis"},svg); el("text",{x:l-6,y:y(v)+3.5,"text-anchor":"end"},svg,fmt(v)); }
+  const accent = css("--accent");
+  H.forEach((x,i) => { if (x[1] > 0) { const rect = el("rect",{x:l+i*bw+0.5,y:y(x[1]),width:Math.max(1,bw-1),height:y(0)-y(x[1]),fill:accent},svg); el("title",{},rect,`${x[0].replace("T"," ")}:00  ${fmt(x[1])} episodes, ${fmt(x[2])} RGB frames`); } });
+  H.forEach((x,i) => { if (x[0].endsWith("T00") || i === 0) { const X = l+i*bw; el("line",{x1:X,x2:X,y1:y(0),y2:y(0)+5,class:"axis"},svg); el("text",{x:X+2,y:h-14},svg,x[0].slice(5,10)); } });
+  el("text",{x:l,y:h-1},svg,"hour (local time) · hover a bar for counts");
+})();
+
+// ---------- rates ----------
+(function(){
+  const rows = [["", "Since 13 Sep", "All rounds"],
+    ["Rounds", fmt(S.recent.rounds), fmt(S.all.rounds)],
+    ["Worker-hours", fmt(S.recent.worker_hours), fmt(S.all.worker_hours)],
+    ["Episodes / worker-hour", S.recent.episodes_per_worker_hour.toFixed(1), S.all.episodes_per_worker_hour.toFixed(1)],
+    ["RGB frames / worker-hour", fmt(S.recent.rgb_frames_per_worker_hour), fmt(S.all.rgb_frames_per_worker_hour)],
+    ["Days to 1 B with 24 workers", S.recent.days_to_1B_with_24_workers.toFixed(0), S.all.days_to_1B_with_24_workers.toFixed(0)]];
+  $("#rates").innerHTML = rows.map((r,i) => i ? `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>` : `<tr><th></th><th>${r[1]}</th><th>${r[2]}</th></tr>`).join("");
+})();
+
+// ---------- storage ----------
+(function(){
+  const s = P.storage, svg = $("#storage"), W = 460, used = s.volume_total - s.volume_free, x = v => 8 + (W-16)*v/s.volume_total;
+  el("rect",{x:8,y:18,width:W-16,height:22,fill:"none",class:"axis"},svg);
+  el("rect",{x:8,y:18,width:x(used)-8,height:22,fill:css("--rule")},svg);
+  el("rect",{x:8,y:18,width:Math.max(2,x(s.dataset_bytes)-8),height:22,fill:css("--accent")},svg);
+  el("text",{x:8,y:12},svg,"0");
+  el("text",{x:W-8,y:12,"text-anchor":"end"},svg,GB(s.volume_total));
+  el("text",{x:8,y:58},svg,`this dataset ${GB(s.dataset_bytes)}`);
+  el("text",{x:W-8,y:58,"text-anchor":"end"},svg,`free ${GB(s.volume_free)}`);
+  $("#storage-table").innerHTML = [["This dataset",GB(s.dataset_bytes)],["Other data on the volume",GB(used - s.dataset_bytes)],["Free",GB(s.volume_free)],["Volume",GB(s.volume_total)]]
+    .map(r => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td></tr>`).join("");
+})();
+
+// ---------- DR table ----------
+(function(){
+  const t = P.table, lt = P.light, o = P.objects, fl = P.floor.range, cr = P.camera_ranges, rg = t.ranges;
+  const d = Object.entries(P.distractors).map(([k,v]) => [+k, v]).sort((a,b) => a[0]-b[0]);
+  const dmin = d[0][0], dmax = d[d.length-1][0];
+  const f = (a, n=2) => `${a[0].toFixed(n)} to ${a[1].toFixed(n)}`;
+  const fronts = ["front","front_1","front_2","front_3"].filter(v => cr[v]);
+  const camTxt = fronts.map(v => `${v}: x ${f(cr[v].x)}, y ${f(cr[v].y)}, z ${f(cr[v].z)}`).join("<br>");
+  const rows = [
+    ["Source object", "Random graspable asset per round", `${fmt(T.objects)} objects, ${T.categories} categories`, `all ${fmt(T.episodes)} episodes`],
+    ["Object start (x, y)", "Random reachable spot on the table", `x ${f([Math.min(...o.src_start_xy.map(p=>p[0])), Math.max(...o.src_start_xy.map(p=>p[0]))])} m, y ${f([Math.min(...o.src_start_xy.map(p=>p[1])), Math.max(...o.src_start_xy.map(p=>p[1]))])} m`, `${fmt(P.sample_n)} sampled episodes`],
+    ["Place target (x, y)", "Per slot", `x ${f(o.target_range.x)} m, y ${f(o.target_range.y)} m`, `all episodes`],
+    ["Distractors", "Per slot, outside the arm's swept volume", `${dmin} to ${dmax} per slot`, `${fmt(d.reduce((a,x)=>a+x[1],0))} slots`],
+    ["Table shape", "Generated per round", Object.entries(t.shapes).map(([k,v]) => `${k} ${fmt(v)}`).join(", "), `${fmt(t.n)} rounds`],
+    ["Table size", "Depth × width of the top", `${f(rg.sx)} m × ${f(rg.sy)} m`, `${fmt(t.n)} rounds`],
+    ["Table thickness", "", `${f(rg.thickness,3)} m`, `${fmt(t.n)} rounds`],
+    ["Table top height", "Relative to the robot base", `${f(rg.surface_z,3)} m`, `${fmt(t.n)} rounds`],
+    ["Table texture", "Per round; per slot since 15 Sep", `${t.textures_distinct} materials seen`, `${fmt(t.n)} rounds`],
+    ["Floor height", "Per slot", `${f(fl)} m`, `${fmt(P.sample_n)} sampled episodes`],
+    ["Floor and walls", "Per round; per slot since 14 Sep", `${P.background.floors_distinct} floors, ${fmt(P.background.walls_distinct)} wall assets seen`, `${fmt(P.background.rounds)} rounds`],
+    ["Dome light intensity", "Uniform in 0 to 8000", `${lt.intensity_range[0].toFixed(0)} to ${lt.intensity_range[1].toFixed(0)}`, `${fmt(P.sample_n)} sampled episodes`],
+    ["Dome light yaw", "Uniform in ±180°", `${lt.yaw_range[0].toFixed(0)}° to ${lt.yaw_range[1].toFixed(0)}°`, `${fmt(P.sample_n)} sampled episodes`],
+    ["HDRI environment", "Random HDRI texture", `${(100*lt.hdri_fraction).toFixed(1)}% of episodes, ${lt.hdri_distinct} HDRIs seen`, `${fmt(P.sample_n)} sampled episodes`],
+    ["Front cameras (4)", "Framing planned per slot over the whole trajectory", camTxt + " m", `${fmt(P.sample_n)} sampled episodes`],
+    ["Episode length", "Control steps, pick + place", `${P.steps_range[0]} to ${P.steps_range[1]} (median pick ${P.pick_steps_median})`, `all episodes`],
+  ];
+  $("#drtable").innerHTML = `<tr><th>Axis</th><th>How it varies</th><th>Measured</th><th>Measured from</th></tr>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num" style="white-space:normal">${r[2]}</td><td class="muted">${r[3]}</td></tr>`).join("");
+})();
+
+// ---------- histograms ----------
+function histCard(title, h, xlabel, fmtx, note, color){
+  const card = document.createElement("div"); card.className = "card";
+  card.innerHTML = `<h3>${title}</h3>`;
+  const W = 320, H = 170, l = 38, r = 8, t = 10, b = 32;
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":title}); card.appendChild(svg);
+  const n = h.counts.length, max = Math.max(...h.counts) || 1, bw = (W-l-r)/n, y = v => t + (H-t-b)*(1 - v/max);
+  [0, .5, 1].forEach(g => { el("line",{x1:l,x2:W-r,y1:y(max*g),y2:y(max*g),class:g?"grid":"axis"},svg); el("text",{x:l-5,y:y(max*g)+3.5,"text-anchor":"end"},svg,M(Math.round(max*g))); });
+  h.counts.forEach((c,i) => { if (c) { const rect = el("rect",{x:l+i*bw+0.4,y:y(c),width:Math.max(1,bw-0.8),height:y(0)-y(c),fill:color||css("--accent")},svg);
+    el("title",{},rect,`${fmtx(h.lo+i*(h.hi-h.lo)/n)} to ${fmtx(h.lo+(i+1)*(h.hi-h.lo)/n)}: ${fmt(c)}`); } });
+  [0, .5, 1].forEach(g => { const X = l + (W-l-r)*g; el("text",{x:X,y:H-18,"text-anchor":g===0?"start":g===1?"end":"middle"},svg,fmtx(h.lo+(h.hi-h.lo)*g)); });
+  el("text",{x:(l+W-r)/2,y:H-3,"text-anchor":"middle"},svg,xlabel);
+  if (note) { const p = document.createElement("p"); p.className = "muted"; p.textContent = note; card.appendChild(p); }
+  $("#hists").appendChild(card);
+}
+function barCard(title, pairs, note, color){
+  const card = document.createElement("div"); card.className = "card"; card.innerHTML = `<h3>${title}</h3>`;
+  const W = 320, rowH = 15, l = 128, r = 40, H = pairs.length*rowH + 6;
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":title}); card.appendChild(svg);
+  const max = Math.max(...pairs.map(p => p[1]));
+  pairs.forEach((p,i) => { const y = 3 + i*rowH; el("text",{x:l-6,y:y+10,"text-anchor":"end"},svg,String(p[0]).replaceAll("_"," ").slice(0,20));
+    el("rect",{x:l,y:y+2,width:Math.max(1,(W-l-r)*p[1]/max),height:rowH-5,fill:color||css("--accent")},svg);
+    el("text",{x:l+(W-l-r)*p[1]/max+4,y:y+10},svg,fmt(p[1])); });
+  if (note) { const pp = document.createElement("p"); pp.className = "muted"; pp.textContent = note; card.appendChild(pp); }
+  $("#hists").appendChild(card);
+}
+histCard("Dome light intensity", P.light.intensity, "intensity", v => v.toFixed(0), `${fmt(P.light.intensity.n)} sampled episodes`);
+histCard("Dome light yaw", P.light.yaw, "degrees", v => v.toFixed(0), `${fmt(P.light.yaw.n)} sampled episodes`);
+histCard("Table top height", P.table.surface, "metres (robot base at 0)", v => v.toFixed(2), `${fmt(P.table.surface.n)} rounds`, css("--plum"));
+histCard("Table depth (x)", P.table.sx, "metres", v => v.toFixed(2), `${fmt(P.table.sx.n)} rounds`, css("--plum"));
+histCard("Table width (y)", P.table.sy, "metres", v => v.toFixed(2), `${fmt(P.table.sy.n)} rounds`, css("--plum"));
+histCard("Table thickness", P.table.thickness, "metres", v => v.toFixed(3), `${fmt(P.table.thickness.n)} rounds`, css("--plum"));
+histCard("Floor height", P.floor.hist, "metres (robot base at 0)", v => v.toFixed(2), `${fmt(P.floor.hist.n)} sampled episodes`, css("--amber"));
+histCard("Episode length", P.steps, "control steps", v => v.toFixed(0), `${fmt(P.steps.n)} episodes`, css("--amber"));
+barCard("Distractors per slot", Object.entries(P.distractors).map(([k,v]) => [k+" distractors", v]).sort(), `${fmt(Object.values(P.distractors).reduce((a,b)=>a+b,0))} slots`, css("--amber"));
+barCard("Most frequent object categories", P.objects.categories_top.slice(0,18), `top 18 of ${T.categories} categories, by saved episodes`);
+
+// ---------- top view ----------
+(function(){
+  const svg = $("#topview"), W = 460, pad = 34, xr = [-0.1, 1.1], yr = [-0.95, 0.95];
+  const sc = (W-2*pad)/Math.max(xr[1]-xr[0], yr[1]-yr[0]);
+  const X = x => pad + (x - xr[0])*sc, Y = y => W - pad - (y - yr[0])*sc;   // robot +x to the right, +y up
+  for (let v = 0; v <= 1.0001; v += 0.25) { el("line",{x1:X(v),x2:X(v),y1:Y(yr[0]),y2:Y(yr[1]),class:"grid"},svg); el("text",{x:X(v),y:W-pad+16,"text-anchor":"middle"},svg,v.toFixed(2)); }
+  for (let v = -0.75; v <= 0.7501; v += 0.25) { el("line",{x1:X(xr[0]),x2:X(xr[1]),y1:Y(v),y2:Y(v),class:"grid"},svg); el("text",{x:pad-6,y:Y(v)+3.5,"text-anchor":"end"},svg,v.toFixed(2)); }
+  el("text",{x:(W)/2,y:W-4,"text-anchor":"middle"},svg,"x (m)");
+  el("text",{x:10,y:pad-12},svg,"y (m)");
+  const faint = css("--faint");
+  P.table.footprints.forEach(([s, sx, sy]) => {
+    if (s === "ellipse") el("ellipse",{cx:X(0.5),cy:Y(0),rx:sx/2*sc,ry:sy/2*sc,fill:"none",stroke:faint,"stroke-opacity":0.12},svg);
+    else el("rect",{x:X(0.5-sx/2),y:Y(sy/2),width:sx*sc,height:sy*sc,fill:"none",stroke:faint,"stroke-opacity":0.12},svg);
+  });
+  const g1 = el("g",{fill:css("--amber"),"fill-opacity":0.35},svg), g2 = el("g",{fill:css("--accent"),"fill-opacity":0.45},svg);
+  P.objects.target_xy.forEach(([x,y]) => el("circle",{cx:X(x),cy:Y(y),r:1.6},g1));
+  P.objects.src_start_xy.forEach(([x,y]) => el("circle",{cx:X(x),cy:Y(y),r:1.6},g2));
+  el("rect",{x:X(-0.06),y:Y(0.06),width:0.12*sc,height:0.12*sc,fill:css("--ink")},svg);
+  el("text",{x:X(0.07),y:Y(-0.02)+14},svg,"robot base");
+})();
+
+// ---------- camera 3D ----------
+(function(){
+  const cv = $("#cams"), ctx = cv.getContext("2d"), views = ["front","front_1","front_2","front_3"].filter(v => P.cameras[v]);
+  const cols = ["--accent","--amber","--plum","--warn"].map(css);
+  $("#cam-legend").innerHTML = views.map((v,i) => `<span style="--c:${cols[i]}">${v}</span>`).join("");
+  let az = -2.3, el3 = 0.55, drag = null;
+  const center = [0.5, 0, 0.4];
+  function proj(p){ const x = p[0]-center[0], y = p[1]-center[1], z = p[2]-center[2];
+    const ca = Math.cos(az), sa = Math.sin(az), x1 = ca*x - sa*y, y1 = sa*x + ca*y;
+    const ce = Math.cos(el3), se = Math.sin(el3), y2 = ce*y1 - se*z, z2 = se*y1 + ce*z;
+    const s = cv.width/4.2; return [cv.width/2 + x1*s, cv.height/2 - z2*s, y2]; }
+  function draw(){
+    const dpr = 1; ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.lineWidth = 2; ctx.strokeStyle = css("--faint");
+    const tb = [[0.1,-0.8,0],[0.9,-0.8,0],[0.9,0.8,0],[0.1,0.8,0]].map(proj); ctx.beginPath(); tb.forEach((q,i) => i ? ctx.lineTo(q[0],q[1]) : ctx.moveTo(q[0],q[1])); ctx.closePath(); ctx.stroke();
+    ctx.setLineDash([6,6]); [[[0,0,-0.6],[0,0,0.9]]].forEach(([a,b]) => { const A = proj(a), B = proj(b); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke(); }); ctx.setLineDash([]);
+    const base = proj([0,0,0]); ctx.fillStyle = css("--ink"); ctx.fillRect(base[0]-7,base[1]-7,14,14);
+    const pts = []; views.forEach((v,i) => P.cameras[v].forEach(p => pts.push([proj(p), cols[i]])));
+    pts.sort((a,b) => b[0][2]-a[0][2]).forEach(([q,c]) => { ctx.fillStyle = c; ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.arc(q[0],q[1],3.2,0,6.283); ctx.fill(); });
+    ctx.globalAlpha = 1; ctx.fillStyle = css("--muted"); ctx.font = "22px " + css("--font-mono");
+    ctx.fillText("drag to rotate", 20, cv.height-20);
+  }
+  cv.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, az, el3]; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", e => { if (!drag) return; az = drag[2] + (e.clientX-drag[0])*0.01; el3 = Math.max(-1.2, Math.min(1.45, drag[3] + (e.clientY-drag[1])*0.01)); draw(); });
+  const up = () => { drag = null; cv.style.cursor = "grab"; };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  cv.addEventListener("keydown", e => { if (e.key === "ArrowLeft") az -= 0.1; else if (e.key === "ArrowRight") az += 0.1; else if (e.key === "ArrowUp") el3 = Math.min(1.45, el3+0.1); else if (e.key === "ArrowDown") el3 = Math.max(-1.2, el3-0.1); else return; e.preventDefault(); draw(); });
+  draw();
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+  new MutationObserver(draw).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+})();
+
+// ---------- lighting ----------
+$("#lights").innerHTML = L.map(x => `<figure><img src="${x.file}" alt="Dome light intensity ${x.intensity.toFixed(0)}" loading="lazy"><figcaption>${x.intensity.toFixed(0)}</figcaption></figure>`).join("");
+
+// ---------- paths + footer ----------
+const root = P.dataset_root;
+$("#paths").innerHTML = [["Dataset root", root],["Episodes", root + "/gen"],["Index (one JSON row per attempt)", P.manifest]]
+  .map(r => `<tr><td>${r[0]}</td><td><span class="path">${r[1]}</span></td></tr>`).join("");
+$("#footer").innerHTML = `<div>Snapshot ${T.snapshot.replace("T"," ")} · counts from the manifest, verified against NPZ array shapes · sizes from the episode directories on disk.</div>
+<div>Episode-level randomization statistics use ${fmt(P.sample_n)} randomly sampled saved episodes; table and scene statistics use all ${fmt(P.table.n)} production rounds.</div>`;
+
+if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) { const v = $("#v-latest"); v.autoplay = true; v.play().catch(() => {}); }
+})();
+</script>
