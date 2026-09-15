@@ -267,8 +267,8 @@ $("#bar-left").textContent = `${fmt(T.rgb_frames)} RGB frames`;
      `Surface height of each generated table in the robot base frame, ${d.surface_range[0].toFixed(3)} to +${d.surface_range[1].toFixed(3)} m over ${fmt(d.tables)} tables.`],
     ["dr/web_newtables.jpg", "Tables in situ", "24 rounds",
      `First front-camera frame of one saved episode from each of 24 random rounds, labelled with shape, size, rotation and texture. ${d.textures} table textures seen across all rounds.`],
-    ["dr/web_lighting.jpg", "Lighting", "dome intensity, production range",
-     `Same scene, camera and object layout; only the dome light intensity changes across the production range 0 to 8000 (quality rendering). Intensity 0 is not black because the scene keeps its own lights.`],
+    ["dr/web_lighting.jpg", "Lighting", "dome light",
+     `First front-camera frame of one saved episode per intensity band, labelled with the recorded dome intensity, yaw and HDRI map, plus the intensity of all ${fmt(d.light_sample)} sampled episodes (${d.light_range[0].toFixed(0)} to ${d.light_range[1].toFixed(0)}). ${(100*d.hdri_share).toFixed(0)}% of them use an HDRI environment map (${d.hdri_distinct} distinct maps); the rest use a uniform dome.`],
   ];
   $("#drfigs").innerHTML = figs.map(([src, title, tag, cap]) =>
     `<figure class="fig"><div class="label"><b>${title}</b> &middot; ${tag}</div><img src="${src}" alt="${esc(title)}" loading="lazy"><figcaption>${cap}</figcaption></figure>`).join("");
