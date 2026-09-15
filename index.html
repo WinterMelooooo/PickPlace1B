@@ -124,7 +124,7 @@ a:focus-visible,video:focus-visible{outline:2px solid var(--accent);outline-offs
 <section id="latest">
   <div>
     <h2>Latest 36 scenes</h2>
-    <p class="lede">The most recent 36 distinct scenes, one saved episode each, front camera, grasp then place. The recording is 20 fps, one frame per control step; this grid shows every second frame.</p>
+    <p class="lede">The most recent 36 distinct scenes, one saved episode each, front camera, grasp then place. The recording is 20 fps, one frame per control step; this grid shows every second frame. A tile greys out with a check mark once its episode has finished.</p>
   </div>
   <video src="media/latest36.mp4" controls muted loop playsinline preload="metadata" id="v-latest"></video>
 </section>
@@ -135,23 +135,6 @@ a:focus-visible,video:focus-visible{outline:2px solid var(--accent);outline-offs
     <p class="lede">Measured from the rendered output, not read from configuration.</p>
   </div>
   <div id="drfigs" style="display:grid;gap:22px"></div>
-</section>
-
-<section id="scenes">
-  <div>
-    <h2>Per-slot backgrounds and table textures</h2>
-    <p class="lede">A round renders eight slots in parallel. Since 14 September each slot gets its own floor and walls, and since 15 September its own table texture; earlier episodes share one background and texture per round.</p>
-  </div>
-  <div class="grid2">
-    <figure class="fig">
-      <video src="media/per_slot_backgrounds.mp4" controls muted loop playsinline preload="metadata"></video>
-      <figcaption>One round, eight slots: a different floor and walls per slot.</figcaption>
-    </figure>
-    <figure class="fig">
-      <video src="media/per_slot_table_textures.mp4" controls muted loop playsinline preload="metadata"></video>
-      <figcaption>One round, four slots that passed the first pass: a different table texture, floor and walls per slot.</figcaption>
-    </figure>
-  </div>
 </section>
 
 <section id="access">
